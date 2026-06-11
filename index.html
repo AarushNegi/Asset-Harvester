@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asset Harvester — 3D Object Extraction Pipeline</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── BACKGROUND CANVAS ── -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">
+    <span></span>
+    Built on NVIDIA Asset Harvester
+  </div>
+  <h1>Dashcam video to<br><em>3D Gaussian Splat</em></h1>
+  <p>Extract simulation-ready 3D assets from any driving footage using NVIDIA's sparse-view diffusion pipeline.</p>
+  <div class="hero-cta">
+    <a href="#viewer" class="btn btn-primary">▶ View 3D Output</a>
+    <a href="#pipeline" class="btn btn-ghost">See Pipeline</a>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── PIPELINE ── -->
+<section class="section" id="pipeline">
+  <p class="section-label">How it works</p>
+  <h2>5-step extraction pipeline</h2>
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <span class="step-num">01</span>
+      <div class="step-icon">🎥</div>
+      <div class="step-title">Frame Extraction</div>
+      <div class="step-sub">Pull frames from dashcam video at 2fps using ffmpeg</div>
+      <span class="step-tag">extract_frames.py</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-num">02</span>
+      <div class="step-icon">🎯</div>
+      <div class="step-title">Object Detection</div>
+      <div class="step-sub">Detect cars, trucks, pedestrians using YOLOv8n</div>
+      <span class="step-tag">detect_objects.py</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-num">03</span>
+      <div class="step-icon">✂️</div>
+      <div class="step-title">Crop &amp; Format</div>
+      <div class="step-sub">Resize to 512×512, generate mask, build camera.json</div>
+      <span class="step-tag">build_sample_input.py</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-num">04</span>
+      <div class="step-icon">🧠</div>
+      <div class="step-title">3D Generation</div>
+      <div class="step-sub">SparseViewDiT generates 16 views → TokenGS lifts to 3D</div>
+      <span class="step-tag">batch_inference.py</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="step-num">05</span>
+      <div class="step-icon">📦</div>
+      <div class="step-title">Export</div>
+      <div class="step-sub">Output gaussians.ply for Blender or simulation</div>
+      <span class="step-tag">gaussians.ply</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── VIEWER ── -->
+<section class="viewer-section" id="viewer">
+  <div class="viewer-inner">
+    <p class="section-label">Live output</p>
+    <h2>Generated 3D asset</h2>
+    <div class="viewer-grid">
+
+      <div class="viewer-box">
+        <div class="viewer-header">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="viewer-title">gaussians.ply — consumer_vehicle / 382fee4aea8819ce</span>
+        </div>
+        <div class="viewer-canvas">
+          <canvas id="splat-canvas"></canvas>
+          <div class="viewer-overlay" id="viewer-overlay">
+            <div style="font-size:2.5rem">🚗</div>
+            <p>Load the Gaussian Splat to view the 3D car asset</p>
+            <button class="load-btn" onclick="loadSplat()">Load gaussians.ply</button>
+            <p style="font-size:11px; margin-top:4px;">File must be in outputs/sample_car/</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="viewer-info">
+        <div class="info-card">
+          <h4>Inference Stats</h4>
+          <div class="stat-row">
+            <span class="stat-label">Model</span>
+            <span class="stat-value">SparseViewDiT 1.6B</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Input views</span>
+            <span class="stat-value">2 frames</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Generated views</span>
+            <span class="stat-value">16 novel views</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Denoising steps</span>
+            <span class="stat-value">30 steps</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Inference time</span>
+            <span class="stat-value">~48s (T4 GPU)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Output format</span>
+            <span class="stat-value">3D Gaussian Splat (.ply)</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Status</span>
+            <span class="stat-value status-dot">Generated</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>How to view in Blender</h4>
+          <div class="stat-row">
+            <span class="stat-label">Step 1</span>
+            <span class="stat-value">Install GS Addon</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Step 2</span>
+            <span class="stat-value">File → Import → .ply</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Or</span>
+            <span class="stat-value">supersplat.playcanvas.com</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Convert to mesh</span>
+            <span class="stat-value">Export .glb → Blender</span>
+          </div>
+        </div>
+
+        <div class="drop-zone"
+             onclick="document.getElementById('file-input').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleDrop(event)">
+          <input type="file" id="file-input" accept=".ply" onchange="handleFile(event)" />
+          <div class="icon">📂</div>
+          <strong style="font-size:13px;">Drop your gaussians.ply here</strong>
+          <p>or click to browse — loads directly in browser</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── TECH STACK ── -->
+<section class="section">
+  <p class="section-label">Tech stack</p>
+  <h2>Built with</h2>
+  <div class="stack-grid">
+    <div class="stack-card">
+      <h4>SparseViewDiT</h4>
+      <p>Diffusion transformer that generates 16 novel views from 1–4 sparse input images using Flow Matching</p>
+      <span class="stack-tag">NVIDIA Research</span>
+    </div>
+    <div class="stack-card">
+      <h4>Object TokenGS</h4>
+      <p>Feedforward encoder-decoder that lifts multiview images into 3D Gaussians in a single forward pass</p>
+      <span class="stack-tag">NVIDIA Research</span>
+    </div>
+    <div class="stack-card">
+      <h4>YOLOv8n</h4>
+      <p>Real-time object detection for extracting vehicle and pedestrian crops from dashcam frames</p>
+      <span class="stack-tag">Ultralytics</span>
+    </div>
+    <div class="stack-card">
+      <h4>3D Gaussian Splatting</h4>
+      <p>Represents 3D scenes as millions of Gaussian ellipsoids — photorealistic, real-time renderable</p>
+      <span class="stack-tag">Kerbl et al. 2023</span>
+    </div>
+    <div class="stack-card">
+      <h4>ffmpeg</h4>
+      <p>Frame extraction from dashcam video at configurable FPS with hardware acceleration support</p>
+      <span class="stack-tag">v8.1.1</span>
+    </div>
+    <div class="stack-card">
+      <h4>Kaggle T4 GPU</h4>
+      <p>Free 16GB VRAM GPU used for inference — no local GPU required to run the full pipeline</p>
+      <span class="stack-tag">Free tier</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── RESULTS ── -->
+<section class="section">
+  <p class="section-label">Results</p>
+  <h2>Output from dashcam footage</h2>
+  <div class="gallery">
+    <div class="gallery-item">
+      <div class="gallery-placeholder">🎥</div>
+      <div class="gallery-label">Input frame</div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">✂️</div>
+      <div class="gallery-label">Cropped object</div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">⬜</div>
+      <div class="gallery-label">Object mask</div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">🔄</div>
+      <div class="gallery-label">16 novel views</div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">📦</div>
+      <div class="gallery-label">gaussians.ply</div>
+    </div>
+    <div class="gallery-item">
+      <div class="gallery-placeholder">🎮</div>
+      <div class="gallery-label">Blender import</div>
+    </div>
+  </div>
+  <p style="margin-top:20px; font-size:13px; color:var(--muted);">
+    21 frames extracted → 40 object crops detected → 40 samples formatted → 3D assets generated
+  </p>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>
+    Built by Aarush Negi &nbsp;·&nbsp;
+    Based on <a href="https://github.com/NVIDIA/asset-harvester" target="_blank">NVIDIA Asset Harvester</a> &nbsp;·&nbsp;
+    <a href="https://github.com/AarushNegi/asset-harvester-project" target="_blank">GitHub</a>
+  </p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
