@@ -240,7 +240,7 @@ Then download `outputs.zip` from the Kaggle right sidebar.
 | Viewer | SuperSplat, Blender |
 | Training compute | Kaggle T4 16GB / RTX 4060+ |
 
----
+------
 
 ## Credits
 
